@@ -1,7 +1,7 @@
 -- The purpose of this is really to allow the very large live_location table to refer 
 -- to services by a small number to keep disk use low 
 create table if not exists service (
-	id integer primary key autoincrement,
+	id integer primary key,
 	service text not null, -- e.g. '26' or 'X26',
 	destination text not null   -- e.g. 'Seton Sands'
 );
