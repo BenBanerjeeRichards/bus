@@ -8,16 +8,6 @@ import logging
 import sys
 
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),  
-        logging.FileHandler('log.log') 
-    ]
-)
-
-
 
 def get_vehicle_locations() -> [ApiLiveLocation]:
     r = requests.get("https://tfe-opendata.com/api/v1/vehicle_locations")
@@ -53,12 +43,35 @@ def scrape_locations(conn):
 
 
 def main():
-    db_path = os.environ.get("SQLITE_PATH")
-    if not db_path:
-        logging.fatal("Missing configuration environment SQLITE_PATH")
+    log_path = os.environ.get("LOG_PATH")
+    if not log_path:
+        print("Missing configuration environment LOG_PATH")
         sys.exit(1)
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(),  
+            logging.FileHandler(log_path) 
+        ]
+    )
+
+    db_path = get_required_env("SQLITE_PATH")
     conn = db.connect(db_path)
     scrape_locations(conn)
 
+def get_required_env(name: str) -> str:
+    v = os.environ.get(name)
+    if not v:
+        logging.fatal("Missing configuration environment %s", name)
+        sys.exit(1)
+    return v 
+
+
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BaseException as e:
+        logging.fatal("Error occured", exc_info=e)
+        sys.exit(1)
