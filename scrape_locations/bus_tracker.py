@@ -1,25 +1,29 @@
-import os 
-import datetime 
+import datetime
 import hashlib
-import requests 
-import json
+import requests
 import pytz
-import logging 
-import os 
+import os
+from dataclasses import dataclass
 
 
-# MyBusTracker API calls 
-# Not neeed yet 
+# MyBusTracker API calls
+
+@dataclass
+class Departure:
+    stop_id: str
+    service_id: str
+    date_time: datetime.datetime
+
 
 def get_key():
     date = datetime.datetime.now(datetime.timezone.utc)
-    postfix = f"{date.year}{str(date.month).rjust(2,'0')}{str(date.day).rjust(2,'0')}{str(date.hour).rjust(2,'0')}"
+    postfix = f"{date.year}{str(date.month).rjust(2, '0')}{str(date.day).rjust(2, '0')}{str(date.hour).rjust(2, '0')}"
     code = os.environ["LOTHIAN_BUSTRACKER_KEY"]
     return hashlib.md5(f"{code}{postfix}".encode("utf-8")).hexdigest()
 
 
 def get_journey_times(stop_id: str, journey_id: str | None, bus_id: str | None):
-    params["stopId"] = stop_id
+    params = {"stopId": stop_id}
     if journey_id is not None:
         params["journeyId"] = journey_id
     if bus_id is not None:
@@ -49,14 +53,14 @@ def get_realtime_departures(stop_ids: [str]) -> dict[str, Departure]:
     now = datetime.datetime.now()
     uktz = pytz.timezone('Europe/London')
     for service in services:
-        time_data = service["timeDatas"][0]# TODO error handling
+        time_data = service["timeDatas"][0]  # TODO error handling
         if not is_realtime(time_data["reliability"]):
             continue
-        local_time = time_data["time"] 
+        local_time = time_data["time"]
         parts = local_time.split(":")
         dt = uktz.localize(datetime.datetime(now.year, now.month, now.day, int(parts[0]), int(parts[1])))
         res[service["refService"]] = Departure(service["stopId"], service["refService"], dt)
-    return res 
+    return res
 
 
 def get_bus_stops():

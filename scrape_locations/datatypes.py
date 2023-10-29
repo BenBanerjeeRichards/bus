@@ -1,13 +1,4 @@
 from dataclasses import dataclass
-import datetime 
-
-
-@dataclass
-class Departure:
-    stop_id: str
-    service_id: str 
-    date_time: datetime.datetime
-
 
 @dataclass
 class ApiLiveLocation:

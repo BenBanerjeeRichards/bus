@@ -1,31 +1,27 @@
-import os 
-import datetime 
-import requests 
-import json
-import db 
+import os
+import requests
+import db
 from datatypes import *
-import logging 
+import logging
 import sys
-
 
 
 def get_vehicle_locations() -> [ApiLiveLocation]:
     r = requests.get("https://tfe-opendata.com/api/v1/vehicle_locations")
     r.raise_for_status()
-    return [ApiLiveLocation(l["latitude"], l["longitude"], l["heading"], l["last_gps_fix"], 
-        l["vehicle_id"], l["speed"], l["next_stop_id"],l["journey_id"], l["service_name"], 
-        l["destination"]) for l in r.json()["vehicles"] if l["service_name"] != None]
+    return [ApiLiveLocation(l["latitude"], l["longitude"], l["heading"], l["last_gps_fix"],
+                            l["vehicle_id"], l["speed"], l["next_stop_id"], l["journey_id"], l["service_name"],
+                            l["destination"]) for l in r.json()["vehicles"] if l["service_name"] != None]
 
 
 def scrape_locations(conn):
-
     locations = get_vehicle_locations()
 
     # First insert any services that don't already exist
     services = []
     live_locations = []
     for loc in locations:
-        destination = "" if loc.destination is None else loc.destination # e.g. CS1
+        destination = "" if loc.destination is None else loc.destination  # e.g. CS1
         s = (loc.service_name, destination)
         if s not in services:
             services.append(s)
@@ -39,12 +35,11 @@ def scrape_locations(conn):
             logging.warn("Service %s not found in database", service_key)
             continue
         sid = service_mapping[service_key]
-        live_locations.append(LiveLocation(l.lat, l.lon, l.heading, l.last_fix_timestamp, l.vehicle_id, l.speed, 
-            l.next_stop_id, l.journey_id, sid))
+        live_locations.append(LiveLocation(l.lat, l.lon, l.heading, l.last_fix_timestamp, l.vehicle_id, l.speed,
+                                           l.next_stop_id, l.journey_id, sid))
 
     num_inserted = db.insert_live_locations(conn, live_locations)
     logging.info("Inserted %s live_locations", num_inserted)
-
 
 
 def main():
@@ -57,8 +52,8 @@ def main():
         level=logging.DEBUG,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.StreamHandler(),  
-            logging.FileHandler(log_path) 
+            logging.StreamHandler(),
+            logging.FileHandler(log_path)
         ]
     )
 
@@ -66,12 +61,13 @@ def main():
     conn = db.connect(db_path)
     scrape_locations(conn)
 
+
 def get_required_env(name: str) -> str:
     v = os.environ.get(name)
     if not v:
         logging.fatal("Missing configuration environment %s", name)
         sys.exit(1)
-    return v 
+    return v
 
 
 if __name__ == "__main__":
