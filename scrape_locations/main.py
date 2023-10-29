@@ -25,7 +25,8 @@ def scrape_locations(conn):
     services = []
     live_locations = []
     for loc in locations:
-        s = (loc.service_name, loc.destination)
+        destination = "" if loc.destination is None else loc.destination # e.g. CS1
+        s = (loc.service_name, destination)
         if s not in services:
             services.append(s)
     logging.info("Got %s live vehicle locations from open-tfe API", len(locations))
@@ -33,7 +34,11 @@ def scrape_locations(conn):
     service_mapping = db.get_services(conn)
 
     for l in locations:
-        sid = service_mapping[(l.service_name, l.destination)]
+        service_key = (l.service_name, "" if l.destination is None else l.destination)
+        if service_key not in service_mapping:
+            logging.warn("Service %s not found in database", service_key)
+            continue
+        sid = service_mapping[service_key]
         live_locations.append(LiveLocation(l.lat, l.lon, l.heading, l.last_fix_timestamp, l.vehicle_id, l.speed, 
             l.next_stop_id, l.journey_id, sid))
 
