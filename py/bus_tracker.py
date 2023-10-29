@@ -46,6 +46,10 @@ def get_bus_times(num_departures, time_requests):
     return _api_request("getBusTimes", params)
 
 
+def get_disruptions():
+    params = {"type": 0}
+    return _api_request("getDisruptions", params)
+
 def get_realtime_departures(stop_ids: [str]) -> dict[str, Departure]:
     reqs = [{"stopId": sid for sid in stop_ids}]
     services = get_bus_times(1, reqs)["busTimes"]

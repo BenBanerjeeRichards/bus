@@ -25,3 +25,16 @@ class LiveLocation:
     next_stop_id: str
     journey_id: str
     service_id: int
+
+
+@dataclass
+class Stop:
+    id: str
+    atco_code: str
+    lat: float
+    lon: float
+    name: str
+    orientation: int
+    direction: str
+    identifier: str
+    locality: str

@@ -20,6 +20,19 @@ create table if not exists live_location (
 	service_id int,
 	primary key (vehicle_id, timestamp),
 	foreign key (service_id) references service(id)
-)
+);
 
--- TODO indexex for live_location
+-- TODO indexes for live_location
+
+create table if not exists stop (
+    id text primary key, -- Naptan code
+    atco_code text not null unique,
+    lat real not null,
+    lon real not null,
+    name text not null,
+    orientation real, -- bearing e.g. 128
+    direction text, -- N, E, S, W, NE, SW, ...
+    identifier text, -- code for dense locations - e.g. PX, PT, ...
+    locality text -- Broad area stop is located in - Edinburgh (for centre), Holyrood, West End etc
+);
+

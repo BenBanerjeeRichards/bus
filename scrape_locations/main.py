@@ -1,7 +1,7 @@
-import os
 import requests
-import db
-from datatypes import *
+from py import db
+from py.datatypes import *
+from py.util import *
 import logging
 import sys
 
@@ -47,32 +47,16 @@ def main():
     if not log_path:
         print("Missing configuration environment LOG_PATH")
         sys.exit(1)
-
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler(log_path)
-        ]
-    )
+    setup_logging(log_path)
 
     db_path = get_required_env("SQLITE_PATH")
     conn = db.connect(db_path)
     scrape_locations(conn)
 
 
-def get_required_env(name: str) -> str:
-    v = os.environ.get(name)
-    if not v:
-        logging.fatal("Missing configuration environment %s", name)
-        sys.exit(1)
-    return v
-
-
 if __name__ == "__main__":
     try:
         main()
     except BaseException as e:
-        logging.fatal("Error occured", exc_info=e)
+        logging.fatal("Error:", exc_info=e)
         sys.exit(1)

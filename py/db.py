@@ -1,9 +1,5 @@
 import sqlite3
-from datatypes import *
-import logging 
-import os 
-
-
+from py.datatypes import *
 
 
 def insert_services(connection, services: [(str, str)]):
@@ -21,13 +17,23 @@ def get_services(connection):
     return res
 
 
-def insert_live_locations(connection, live_locations: [LiveLocation]) -> int:
+def insert_live_locations(connection, live_locations: list[LiveLocation]) -> int:
     cursor = connection.cursor()
-    data = [(l.lat, l.lon, l.heading, l.timestamp, l.vehicle_id, l.speed, l.next_stop_id, 
-        l.journey_id, l.service_id) for l in live_locations]
+    data = [(l.lat, l.lon, l.heading, l.timestamp, l.vehicle_id, l.speed, l.next_stop_id,
+             l.journey_id, l.service_id) for l in live_locations]
     cursor.executemany("insert or ignore into live_location values (?, ?, ?, ?, ?, ?, ?, ?, ?)", data)
     connection.commit()
     return cursor.rowcount
+
+
+def save_stops(connection, stops: list[Stop]) -> int:
+    cursor = connection.cursor()
+    data = [(s.id, s.atco_code, s.lat, s.lon, s.name, s.orientation, s.direction, s.identifier, s.locality)
+            for s in stops]
+    cursor.executemany("insert or ignore into stop values (?, ?, ?, ?, ?, ?, ?, ?, ?)", data)
+    connection.commit()
+    return cursor.rowcount
+
 
 
 def connect(path: str):
