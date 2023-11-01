@@ -1,3 +1,4 @@
+import logging
 import sqlite3
 from py.datatypes import *
 
@@ -31,6 +32,14 @@ def save_stops(connection, stops: list[Stop]) -> int:
     data = [(s.id, s.atco_code, s.lat, s.lon, s.name, s.orientation, s.direction, s.identifier, s.locality)
             for s in stops]
     cursor.executemany("insert or ignore into stop values (?, ?, ?, ?, ?, ?, ?, ?, ?)", data)
+    connection.commit()
+    return cursor.rowcount
+
+
+def save_route(connection, service_id: int, route: Route) -> int:
+    cursor = connection.cursor()
+    insert_data = [(service_id, p.lat, p.lon, p.stop_id) for p in route.points]
+    cursor.executemany("insert or ignore into route_point values (?, ?, ?, ?)", insert_data)
     connection.commit()
     return cursor.rowcount
 

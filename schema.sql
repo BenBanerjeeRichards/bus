@@ -36,3 +36,11 @@ create table if not exists stop (
     locality text -- Broad area stop is located in - Edinburgh (for centre), Holyrood, West End etc
 );
 
+create table if not exists route_point (
+    service_id int,
+    lat int not null,
+    lon int not null,
+    stop_id int,
+    primary key (service_id, lat, lon),
+    foreign key (stop_id) references stop (id)
+);

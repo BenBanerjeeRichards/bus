@@ -1,20 +1,21 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class ApiLiveLocation:
-    lat: float 
-    lon: float 
+    lat: float
+    lon: float
     heading: int
     last_fix_timestamp: int
     vehicle_id: str
     speed: int
-    next_stop_id: str 
-    journey_id: str 
+    next_stop_id: str
+    journey_id: str
     service_name: str
-    destination: str 
+    destination: str
 
 
-@dataclass 
+@dataclass
 class LiveLocation:
     lat: float
     lon: float
@@ -38,3 +39,20 @@ class Stop:
     direction: str
     identifier: str
     locality: str
+
+
+@dataclass
+class Point:
+    lat: float
+    lon: float
+    stop_id: int
+
+
+@dataclass
+class Route:
+    service: str  # e.g. 35
+    destination: str  # e.g. Ocean terminal
+    points: list[Point]
+
+
+

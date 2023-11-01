@@ -5,13 +5,22 @@ from py.util import *
 import logging
 import sys
 
+TOUR_BUS_SERVICES = ["CS1", "MA1", "ET1"]
+
+
+# Filter out any locations we don't want
+# TODO this should also include buses still at a depot
+def _filter_live_locations(locations: list[ApiLiveLocation]) -> list[ApiLiveLocation]:
+    return [loc for loc in locations if loc.service_name is not None and loc.service_name not in TOUR_BUS_SERVICES]
+
 
 def get_vehicle_locations() -> [ApiLiveLocation]:
     r = requests.get("https://tfe-opendata.com/api/v1/vehicle_locations")
     r.raise_for_status()
-    return [ApiLiveLocation(l["latitude"], l["longitude"], l["heading"], l["last_gps_fix"],
+    locs = [ApiLiveLocation(l["latitude"], l["longitude"], l["heading"], l["last_gps_fix"],
                             l["vehicle_id"], l["speed"], l["next_stop_id"], l["journey_id"], l["service_name"],
-                            l["destination"]) for l in r.json()["vehicles"] if l["service_name"] != None]
+                            l["destination"]) for l in r.json()["vehicles"]]
+    return _filter_live_locations(locs)
 
 
 def scrape_locations(conn):
