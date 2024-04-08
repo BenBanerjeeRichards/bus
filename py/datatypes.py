@@ -46,6 +46,7 @@ class Point:
     lat: float
     lon: float
     stop_id: int
+    seq: int
 
 
 @dataclass
@@ -55,4 +56,20 @@ class Route:
     points: list[Point]
 
 
+@dataclass
+class Marker:
+    lat: float
+    lon: float
+    color: str
+    shape: str
+    message: str
 
+
+@dataclass
+class BusPosition:
+    lat: float
+    lon: float
+    prev_stop: Point
+    next_stop: Point
+    # How far between prev_stop and next_stop are we 0 <= progress_prop <= 1
+    progress_prop: float

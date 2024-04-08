@@ -8,7 +8,7 @@ def insert_services(connection, services: [(str, str)]):
     cursor.executemany("insert or ignore into service (service, destination) values (?, ?)", services)
 
 
-def get_services(connection):
+def get_services(connection) -> dict[tuple[str, str], int]:
     cursor = connection.cursor()
     records = cursor.execute("select * from service").fetchall()
     res = {}
@@ -38,11 +38,39 @@ def save_stops(connection, stops: list[Stop]) -> int:
 
 def save_route(connection, service_id: int, route: Route) -> int:
     cursor = connection.cursor()
-    insert_data = [(service_id, p.lat, p.lon, p.stop_id) for p in route.points]
-    cursor.executemany("insert or ignore into route_point values (?, ?, ?, ?)", insert_data)
+    insert_data = [(service_id, p.lat, p.lon, p.stop_id, p.seq) for p in route.points]
+    cursor.executemany("insert or ignore into route_point values (?, ?, ?, ?, ?)", insert_data)
     connection.commit()
     return cursor.rowcount
 
+
+def get_service_stops(connection, service_id: int) -> [Point]:
+    cursor = connection.cursor()
+    res = cursor.execute("select lat, lon, stop_id, sequence from route_point where service_id = ? and stop_id is not null order by seq asc",
+                             (str(service_id),)).fetchall()
+    return [Point(*p) for p in res]
+
+
+def get_service_points(connection, service_id: int) -> [Point]:
+    cursor = connection.cursor()
+    res = cursor.execute("select lat, lon, stop_id, sequence from route_point where service_id = ? order by sequence asc",
+                             (str(service_id),)).fetchall()
+    return [Point(*p) for p in res]
+
+
+def paginated_get_live_locations_by_service_id(connection, service_id, batch_size=1000):
+    return _paginated_query(connection, "select * from live_location where service_id = ?",
+                            (service_id,), lambda r: LiveLocation(*r), batch_size)
+
+
+def _paginated_query(connection, query: str, params: tuple, mapping, count: int):
+    cursor = connection.cursor()
+    current_offset = 0
+    result = None
+    while result is None or len(result) > 0:
+        result = cursor.execute(query + " limit ? offset ?", (*params, count, current_offset)).fetchall()
+        yield [mapping(r) for r in result]
+        current_offset += count
 
 
 def connect(path: str):

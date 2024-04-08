@@ -23,8 +23,8 @@ def _get_routes() -> [Route]:
     for service in res.json()["services"]:
         for route in service["routes"]:
             points = []
-            for point in route["points"]:
-                points.append(Point(point["latitude"], point["longitude"], point["stop_id"]))
+            for seq, point in enumerate(route["points"]):
+                points.append(Point(point["latitude"], point["longitude"], point["stop_id"], seq))
             routes.append(Route(service["name"], route["destination"], points))
     return routes
 
