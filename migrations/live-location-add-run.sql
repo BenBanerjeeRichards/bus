@@ -1,0 +1,1 @@
+alter table live_location add column run_id;
